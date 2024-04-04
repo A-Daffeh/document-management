@@ -1,0 +1,15 @@
+ACTIVE_PROFILE: dev
+
+POSTGRESQL_HOST: 172.17.128.1
+POSTGRESQL_PORT: 5432
+POSTGRESQL_DB: "document-managementdb"
+POSTGRESQL_USERNAME: user
+POSTGRESQL_PASSWORD: "@Adoustar4"
+
+EMAIL_HOST: stmp.gmail.com
+EMAIL_PORT: 587
+EMAIL_ID: adama.daffeh07@gmail.com
+EMAIL_PASSWORD: "kycezofyujzeqaiu"
+VERIFY_EMAIL_HOST: http://localhost:${CONTAINER_PORT}
+
+CONTAINER_PORT: 8085
