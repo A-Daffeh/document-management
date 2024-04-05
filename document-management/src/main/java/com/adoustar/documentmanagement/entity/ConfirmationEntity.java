@@ -1,9 +1,6 @@
 package com.adoustar.documentmanagement.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -11,13 +8,17 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.UUID;
 
-@Data
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
+
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ToString
 @Entity
 @Table(name = "confirmations")
+@JsonInclude(NON_DEFAULT)
 public class ConfirmationEntity extends Auditable {
     private String key;
     @OneToOne(targetEntity = UserEntity.class, fetch = FetchType.EAGER)
@@ -26,10 +27,10 @@ public class ConfirmationEntity extends Auditable {
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @JsonIdentityReference(alwaysAsId = true)
     @JsonProperty("user_id")
-    private UserEntity user;
+    private UserEntity userEntity;
 
     public ConfirmationEntity(UserEntity userEntity) {
-        this.user = userEntity;
+        this.userEntity = userEntity;
         this.key = UUID.randomUUID().toString();
     }
 }

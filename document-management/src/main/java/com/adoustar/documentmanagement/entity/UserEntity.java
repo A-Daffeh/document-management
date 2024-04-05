@@ -1,18 +1,23 @@
 package com.adoustar.documentmanagement.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
+
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ToString
 @Entity
 @Table(name = "users")
+@JsonInclude(NON_DEFAULT)
 public class UserEntity extends Auditable {
     @Column(unique = true, updatable = false, nullable = false)
     private String userId;
@@ -28,10 +33,10 @@ public class UserEntity extends Auditable {
     private boolean accountNonExpired;
     private boolean accountNonLocked;
     private boolean enabled;
-    private boolean isMFA;
+    private boolean isMfa;
     @JsonIgnore
     private String qrCodeSecret;
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "text")
     private String qrCodeImageUri;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
