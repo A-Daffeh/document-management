@@ -65,3 +65,7 @@ server:
     path: /user/error
     whitelabel:
       enabled: true
+
+jwt:
+  expiration: ${JWT_EXPIRATION}
+  secret: ${JWT_SECRET}

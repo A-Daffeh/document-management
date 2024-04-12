@@ -1,7 +1,15 @@
 package com.adoustar.documentmanagement.constant;
 
 public class Constant {
+
+    public static final int STRENGTH = 12;
+    public static final int NINETY_DAYS = 90;
     public static final String ROLE_PREFIX = "ROLE_";
+    public static final String AUTHORITIES = "authorities";
+    public static final String EMPTY_VALUE = "empty";
+    public static final String TYPE = "typ";
+    public static final String JWT_TYPE = "JWT";
+    public static final String ROLE = "role";
     public static final String AUTHORITY_DELIMITER = ",";
     public static final String MANAGER_AUTHORITIES = "user:read,document:create,document:read,document:update,document:delete";
     public static final String SUPER_ADMIN_AUTHORITIES = "user:create,user:read,user:update,user:delete,document:create,document:read,document:update,document:delete";
