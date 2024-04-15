@@ -3,7 +3,7 @@ package com.adoustar.documentmanagement.enums;
 import com.adoustar.documentmanagement.domain.Token;
 
 public enum TokenType {
-    ACCESS("access-token"), REFERESH("refresh-token");
+    ACCESS("access-token"), REFRESH("refresh-token");
 
     private final  String value;
 

@@ -66,8 +66,10 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     }
 
     private Object sendResponse(HttpServletRequest request, HttpServletResponse response, User user) {
+        return null;
     }
 
     private Object sendQrCode(HttpServletRequest request, User user) {
+        return null;
     }
 }

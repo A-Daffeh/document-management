@@ -85,7 +85,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
         return claimsFunction.andThen(claims).apply(token);
     }
 
-    private final TriConsumer<HttpServletResponse, User, TokenType> addCookie = ((response, user, tokenType) -> {
+    private final TriConsumer<HttpServletResponse, User, TokenType> addCookie = (response, user, tokenType) -> {
         switch (tokenType) {
             case ACCESS -> {
                 var accessToken = createToken(user, Token::getAccess);
@@ -97,7 +97,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                 cookie.setAttribute("SameSite", NONE.name());
                 response.addCookie(cookie);
             }
-            case REFERESH -> {
+            case REFRESH -> {
                 var refreshToken = createToken(user, Token::getRefreshToken);
                 var cookie = new Cookie(tokenType.getValue(), refreshToken);
                 cookie.setHttpOnly(true);
@@ -116,7 +116,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                     .add(ROLE_PREFIX + claimsFunction.apply(token).get(ROLE, String.class)).toString());
     @Override
     public String createToken(User user, Function<Token, String> tokenFunction) {
-        var token = Token.builder().access(buildToken.apply(user, TokenType.ACCESS)).refreshToken(buildToken.apply(user, TokenType.REFERESH)).build();
+        var token = Token.builder().access(buildToken.apply(user, TokenType.ACCESS)).refreshToken(buildToken.apply(user, TokenType.REFRESH)).build();
         return tokenFunction.apply(token);
     }
 
