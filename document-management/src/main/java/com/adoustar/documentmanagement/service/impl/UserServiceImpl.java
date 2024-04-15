@@ -21,15 +21,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import static com.adoustar.documentmanagement.utils.UserUtil.createUserEntity;
-import static com.adoustar.documentmanagement.utils.UserUtil.fromUserEntity;
+import static com.adoustar.documentmanagement.utils.UserUtil.*;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Service
 @Transactional(rollbackOn = Exception.class)
@@ -112,6 +110,31 @@ public class UserServiceImpl implements UserService {
     public CredentialEntity getUserCredentialById(Long userId) {
         var credentialById = credentialRepository.getCredentialsByUserEntityId(userId);
         return credentialById.orElseThrow(() -> new ApiException("Unable to find user credential."));
+    }
+
+    @Override
+    public User setUpMfa(Long userId) {
+        var userEntity = getUserEntityById(userId);
+        var codeSecret = qrCodeSecret.get();
+        userEntity.setQrCodeImageUri(qrCodeImageUri.apply(userEntity.getEmail(), codeSecret));
+        userEntity.setQrCodeSecret(codeSecret);
+        userEntity.setMfa(true);
+        userRepository.save(userEntity);
+        return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
+    }
+
+    @Override
+    public User cancelMfa(Long userId) {
+        var userEntity = getUserEntityById(userId);
+        userEntity.setQrCodeImageUri(EMPTY);
+        userEntity.setQrCodeSecret(EMPTY);
+        userEntity.setMfa(false);
+        userRepository.save(userEntity);
+        return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
+    }
+
+    private UserEntity getUserEntityById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new ApiException("User not found"));
     }
 
     private UserEntity getUserEntityByEmail(String email) {

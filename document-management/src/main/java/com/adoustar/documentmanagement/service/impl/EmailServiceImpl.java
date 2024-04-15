@@ -10,6 +10,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import static com.adoustar.documentmanagement.constant.Constant.PASSWORD_RESET_REQUEST;
+import static com.adoustar.documentmanagement.constant.Constant.NEW_USER_ACCOUNT_VERIFICATION;
 import static com.adoustar.documentmanagement.utils.EmailUtil.getEmailMessage;
 import static com.adoustar.documentmanagement.utils.EmailUtil.getResetPasswordMessage;
 
@@ -17,11 +19,8 @@ import static com.adoustar.documentmanagement.utils.EmailUtil.getResetPasswordMe
 @RequiredArgsConstructor
 @Slf4j
 public class EmailServiceImpl implements EmailService {
-
-    static final String NEW_USER_ACCOUNT_VERIFICATION = "New User Account Verification";
-    static final String PASSWORD_RESET_REQUEST = "Password Reset Request";
-
     private final JavaMailSender sender;
+
     @Value("${spring.mail.verify.host}")
     private String host;
     @Value("${spring.mail.username}")

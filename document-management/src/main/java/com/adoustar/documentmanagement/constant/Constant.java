@@ -23,4 +23,7 @@ public class Constant {
 
     public static final String BASE_PATH = "/**";
     public static final String FILE_NAME = "File-Name";
+
+    public static final String NEW_USER_ACCOUNT_VERIFICATION = "New User Account Verification";
+    public static final String PASSWORD_RESET_REQUEST = "Password Reset Request";
 }

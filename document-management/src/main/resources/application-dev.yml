@@ -6,10 +6,10 @@ POSTGRESQL_DB: "document-managementdb"
 POSTGRESQL_USERNAME: user
 POSTGRESQL_PASSWORD: "@Adoustar4"
 
-EMAIL_HOST: stmp.gmail.com
+EMAIL_HOST: smtp.gmail.com
 EMAIL_PORT: 587
 EMAIL_ID: adama.daffeh07@gmail.com
-EMAIL_PASSWORD: "kycezofyujzeqaiu"
+EMAIL_PASSWORD: "gntsishiovzankof"
 VERIFY_EMAIL_HOST: http://localhost:${CONTAINER_PORT}
 
 CONTAINER_PORT: 8085

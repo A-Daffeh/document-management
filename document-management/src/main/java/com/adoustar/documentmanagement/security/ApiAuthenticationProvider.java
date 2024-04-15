@@ -53,7 +53,7 @@ public class ApiAuthenticationProvider implements AuthenticationProvider {
     }
 
     private final Consumer<UserPrincipal> validAccount = userPrincipal -> {
-        if (userPrincipal.isAccountNonLocked()) { throw new LockedException("Your is currently Locked."); }
+        if (userPrincipal.isAccountNonLocked()) { throw new LockedException("Your account currently Locked."); }
         if (userPrincipal.isEnabled()) { throw new DisabledException("Your is currently Disabled."); }
         if (userPrincipal.isCredentialsNonExpired()) { throw new CredentialsExpiredException("Your password expired. Please update your password"); }
         if (userPrincipal.isAccountNonExpired()) { throw new DisabledException("Your account has expired. Please contact administrator."); }

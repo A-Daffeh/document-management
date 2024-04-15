@@ -17,4 +17,8 @@ public interface UserService {
     User getUserByEmail(String email);
 
     CredentialEntity getUserCredentialById(Long id);
+
+    User setUpMfa(Long userId);
+
+    User cancelMfa(Long userId);
 }
