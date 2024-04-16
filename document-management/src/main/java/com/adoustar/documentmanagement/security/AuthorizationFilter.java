@@ -34,7 +34,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
             var accessToken = jwtService.extractToken(request, ACCESS.getValue());
             if (accessToken.isPresent() && jwtService.getTokenData(accessToken.get(), TokenData::isValid)) {
@@ -60,7 +60,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    public boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         var shouldNotFilter = request.getMethod().equalsIgnoreCase(HttpMethod.OPTIONS.name()) ||
                 Arrays.asList(PUBLIC_ROUTES).contains(request.getRequestURI());
         if (shouldNotFilter) {

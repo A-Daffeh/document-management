@@ -6,20 +6,17 @@ import com.adoustar.documentmanagement.domain.dtoRequest.LoginRequest;
 import com.adoustar.documentmanagement.enums.LoginType;
 import com.adoustar.documentmanagement.service.JwtService;
 import com.adoustar.documentmanagement.service.UserService;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
@@ -55,7 +52,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+    public void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         var user = (User) authResult.getPrincipal();
         userService.updateLoginAttempt(user.getEmail(), LoginType.LOGIN_SUCCESS);
         var httpResponse = user.isMfa() ? sendQrCode(request, user) : sendResponse(request, response, user);

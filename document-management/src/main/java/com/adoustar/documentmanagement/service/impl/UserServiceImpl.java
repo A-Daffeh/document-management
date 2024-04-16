@@ -27,6 +27,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -48,10 +49,12 @@ public class UserServiceImpl implements UserService {
     private final ApplicationEventPublisher publisher;
     private final CacheStore<String, Integer> userCache;
 
+    private final BCryptPasswordEncoder encoder;
+
     @Override
     public void createUser(String firstName, String lastName, String email, String password) {
         var userEntity = userRepository.save(createNewUser(firstName, lastName, email));
-        var credentialEntity  = new CredentialEntity(password, userEntity);
+        var credentialEntity  = new CredentialEntity(encoder.encode(password), userEntity);
         credentialRepository.save(credentialEntity);
         var confirmationEntity = new ConfirmationEntity(userEntity);
         confirmationRepository.save(confirmationEntity);
