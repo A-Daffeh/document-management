@@ -2,9 +2,13 @@ package com.adoustar.documentmanagement.controller;
 
 import com.adoustar.documentmanagement.domain.Response;
 import com.adoustar.documentmanagement.domain.dto.User;
+import com.adoustar.documentmanagement.domain.dtoRequest.QrCodeRequest;
 import com.adoustar.documentmanagement.domain.dtoRequest.UserRequest;
+import com.adoustar.documentmanagement.enums.TokenType;
+import com.adoustar.documentmanagement.service.JwtService;
 import com.adoustar.documentmanagement.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +28,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final JwtService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<Response> addUser(@RequestBody @Valid UserRequest user, HttpServletRequest request) {
@@ -42,10 +47,19 @@ public class UserController {
         var user = userService.setUpMfa(userPrincipal.getId());
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "MFA setup successfully", OK));
     }
+
     @PatchMapping("/mfa/cancel")
     public ResponseEntity<Response> cancelMfa(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
         var user = userService.cancelMfa(userPrincipal.getId());
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "MFA canceled successfully", OK));
+    }
+
+    @PostMapping("/verify/qrcode")
+    public ResponseEntity<Response> verifyQrCode(@RequestBody QrCodeRequest qrCodeRequest, HttpServletRequest request, HttpServletResponse response) {
+        var user = userService.verifyQrCode(qrCodeRequest.getUserId(), qrCodeRequest.getQrCode());
+        jwtService.addCookie(response, user, TokenType.ACCESS);
+        jwtService.addCookie(response, user, TokenType.REFRESH);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "QR Code Verified", OK));
     }
 
     private URI getUri() {
