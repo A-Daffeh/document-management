@@ -6,6 +6,7 @@ import com.adoustar.documentmanagement.domain.dtoRequest.LoginRequest;
 import com.adoustar.documentmanagement.enums.LoginType;
 import com.adoustar.documentmanagement.service.JwtService;
 import com.adoustar.documentmanagement.service.UserService;
+import com.adoustar.documentmanagement.utils.RequestUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,6 +20,7 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
+import java.util.Map;
 
 import static com.adoustar.documentmanagement.utils.RequestUtil.handleErrorResponse;
 import static com.fasterxml.jackson.core.JsonParser.Feature.AUTO_CLOSE_SOURCE;
@@ -65,7 +67,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     }
 
     private Object sendResponse(HttpServletRequest request, HttpServletResponse response, User user) {
-        return null;
+        return RequestUtil.getResponse(request, Map.of("user", user), "Login Successful", OK);
     }
 
     private Object sendQrCode(HttpServletRequest request, User user) {
