@@ -4,6 +4,7 @@ import com.adoustar.documentmanagement.domain.UserAuthentication;
 import com.adoustar.documentmanagement.domain.dto.User;
 import com.adoustar.documentmanagement.domain.dtoRequest.LoginRequest;
 import com.adoustar.documentmanagement.enums.LoginType;
+import com.adoustar.documentmanagement.enums.TokenType;
 import com.adoustar.documentmanagement.service.JwtService;
 import com.adoustar.documentmanagement.service.UserService;
 import com.adoustar.documentmanagement.utils.RequestUtil;
@@ -67,6 +68,8 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     }
 
     private Object sendResponse(HttpServletRequest request, HttpServletResponse response, User user) {
+        jwtService.addCookie(response, user, TokenType.ACCESS);
+        jwtService.addCookie(response, user, TokenType.REFRESH);
         return RequestUtil.getResponse(request, Map.of("user", user), "Login Successful", OK);
     }
 
