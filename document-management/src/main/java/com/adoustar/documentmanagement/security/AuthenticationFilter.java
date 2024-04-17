@@ -74,6 +74,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     }
 
     private Object sendQrCode(HttpServletRequest request, User user) {
-        return null;
+
+        return RequestUtil.getResponse(request, Map.of("user", user), "Please enter QR code", OK);
     }
 }

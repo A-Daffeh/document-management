@@ -5,7 +5,7 @@ public class EmailUtil {
     public static String getEmailMessage(String name, String host, String token) {
         return "Hello " + name + ",\n\nYour new account has been created." +
                 "Please click on the link below to verify your account.\n\n" +
-                getVerficationUrl(host, token) + "\n\nThe Support Team";
+                getVerificationUrl(host, token) + "\n\nThe Support Team";
     }
 
     public static String getResetPasswordMessage(String name, String host, String token) {
@@ -14,7 +14,7 @@ public class EmailUtil {
                 getResetPasswordUrl(host, token) + "\n\nThe Support Team";
     }
 
-    public static String getVerficationUrl(String host, String token) {
+    public static String getVerificationUrl(String host, String token) {
         return host + "/user/verify/account?token=" + token;
     }
 

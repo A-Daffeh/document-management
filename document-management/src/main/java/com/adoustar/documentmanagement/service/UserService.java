@@ -27,4 +27,6 @@ public interface UserService {
     void resetPassword(String email);
 
     User verifyPasswordKey(String token);
+
+    void updatePassword(String userId, String newPassword, String confirmNewPassword);
 }

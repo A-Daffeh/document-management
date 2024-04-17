@@ -175,6 +175,15 @@ public class UserServiceImpl implements UserService {
         return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
     }
 
+    @Override
+    public void updatePassword(String userId, String newPassword, String confirmNewPassword) {
+        if (confirmNewPassword.equals(newPassword)) { throw new ApiException("Passwords don't match. Please try again"); }
+        var user = getUserByUserId(userId);
+        var credentials = getUserCredentialById(user.getId());
+        credentials.setPassword(encoder.encode(newPassword));
+        credentialRepository.save(credentials);
+    }
+
     private boolean verifyCode(String qrCode, String qrCodeSecret) {
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();

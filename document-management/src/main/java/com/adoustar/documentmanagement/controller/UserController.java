@@ -4,6 +4,7 @@ import com.adoustar.documentmanagement.domain.Response;
 import com.adoustar.documentmanagement.domain.dto.User;
 import com.adoustar.documentmanagement.domain.dtoRequest.EmailRequest;
 import com.adoustar.documentmanagement.domain.dtoRequest.QrCodeRequest;
+import com.adoustar.documentmanagement.domain.dtoRequest.ResetPasswordRequest;
 import com.adoustar.documentmanagement.domain.dtoRequest.UserRequest;
 import com.adoustar.documentmanagement.enums.TokenType;
 import com.adoustar.documentmanagement.service.JwtService;
@@ -70,9 +71,15 @@ public class UserController {
     }
 
     @GetMapping("/verify/password")
-    public ResponseEntity<Response> verifyResetPassword(@RequestParam("token") String token, HttpServletRequest request) {
+    public ResponseEntity<Response> verifyPassword(@RequestParam("token") String token, HttpServletRequest request) {
         var user = userService.verifyPasswordKey(token);
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "Enter new password", OK));
+    }
+
+    @PostMapping("/resetpassword/reset")
+    public ResponseEntity<Response> doResetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest, HttpServletRequest request) {
+        userService.updatePassword(resetPasswordRequest.getUserId(), resetPasswordRequest.getNewPassword(), resetPasswordRequest.getConfirmNewPassword());
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Password reset successfully", OK));
     }
 
     private URI getUri() {
