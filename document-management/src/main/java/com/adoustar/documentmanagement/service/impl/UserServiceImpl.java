@@ -17,6 +17,7 @@ import com.adoustar.documentmanagement.repository.CredentialRepository;
 import com.adoustar.documentmanagement.repository.RoleRepository;
 import com.adoustar.documentmanagement.repository.UserRepository;
 import com.adoustar.documentmanagement.service.UserService;
+import com.adoustar.documentmanagement.validation.UserValidation;
 import dev.samstevens.totp.code.CodeGenerator;
 import dev.samstevens.totp.code.CodeVerifier;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
@@ -149,6 +150,31 @@ public class UserServiceImpl implements UserService {
         return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
     }
 
+    @Override
+    public void resetPassword(String email) {
+        var user = getUserEntityByEmail(email);
+        var confirmation = getUserConfirmation(user);
+
+        if (confirmation != null) {
+            publisher.publishEvent(new UserEvent(user, EventType.RESET_PASSWORD, Map.of("key", confirmation.getKey())));
+        } else {
+            var confirmationEntity = new ConfirmationEntity(user);
+            confirmationRepository.save(confirmationEntity);
+            publisher.publishEvent(new UserEvent(user, EventType.RESET_PASSWORD, Map.of("key", confirmationEntity.getKey())));
+        }
+    }
+
+    @Override
+    public User verifyPasswordKey(String token) {
+        var confirmationEntity = getUserConfirmation(token);
+        if (confirmationEntity == null) { throw new ApiException("Unable to find token"); }
+        var userEntity = getUserEntityByEmail(confirmationEntity.getUserEntity().getEmail());
+        if (userEntity == null) { throw new ApiException("Incorrect token"); }
+        UserValidation.verifyAccountStatus(userEntity);
+        confirmationRepository.delete(confirmationEntity);
+        return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
+    }
+
     private boolean verifyCode(String qrCode, String qrCodeSecret) {
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
@@ -175,6 +201,10 @@ public class UserServiceImpl implements UserService {
 
     private ConfirmationEntity getUserConfirmation(String key) {
         return confirmationRepository.findByKey(key).orElseThrow(() -> new ApiException("Confirmation key not found"));
+    }
+
+    private ConfirmationEntity getUserConfirmation(UserEntity user) {
+        return confirmationRepository.findByUserEntity(user).orElseThrow(null);
     }
 
     private UserEntity createNewUser(String firstName, String lastName, String email) {

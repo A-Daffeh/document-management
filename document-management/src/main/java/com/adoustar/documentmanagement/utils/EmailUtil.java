@@ -15,10 +15,10 @@ public class EmailUtil {
     }
 
     public static String getVerficationUrl(String host, String token) {
-        return host + "/verify/account?token=" + token;
+        return host + "/user/verify/account?token=" + token;
     }
 
     public static String getResetPasswordUrl(String host, String token) {
-        return host + "/verify/password?token=" + token;
+        return host + "/user/verify/password?token=" + token;
     }
 }

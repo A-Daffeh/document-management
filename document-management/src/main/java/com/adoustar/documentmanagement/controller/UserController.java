@@ -2,6 +2,7 @@ package com.adoustar.documentmanagement.controller;
 
 import com.adoustar.documentmanagement.domain.Response;
 import com.adoustar.documentmanagement.domain.dto.User;
+import com.adoustar.documentmanagement.domain.dtoRequest.EmailRequest;
 import com.adoustar.documentmanagement.domain.dtoRequest.QrCodeRequest;
 import com.adoustar.documentmanagement.domain.dtoRequest.UserRequest;
 import com.adoustar.documentmanagement.enums.TokenType;
@@ -60,6 +61,18 @@ public class UserController {
         jwtService.addCookie(response, user, TokenType.ACCESS);
         jwtService.addCookie(response, user, TokenType.REFRESH);
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "QR Code Verified", OK));
+    }
+
+    @PostMapping("/resetpassword")
+    public ResponseEntity<Response> resetPassword(@RequestBody @Valid EmailRequest emailRequest, HttpServletRequest request) {
+        userService.resetPassword(emailRequest.getEmail());
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "We sent you an email to reset your password", OK));
+    }
+
+    @GetMapping("/verify/password")
+    public ResponseEntity<Response> verifyResetPassword(@RequestParam("token") String token, HttpServletRequest request) {
+        var user = userService.verifyPasswordKey(token);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "Enter new password", OK));
     }
 
     private URI getUri() {
