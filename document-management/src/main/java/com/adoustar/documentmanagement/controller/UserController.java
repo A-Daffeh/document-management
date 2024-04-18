@@ -2,10 +2,7 @@ package com.adoustar.documentmanagement.controller;
 
 import com.adoustar.documentmanagement.domain.Response;
 import com.adoustar.documentmanagement.domain.dto.User;
-import com.adoustar.documentmanagement.domain.dtoRequest.EmailRequest;
-import com.adoustar.documentmanagement.domain.dtoRequest.QrCodeRequest;
-import com.adoustar.documentmanagement.domain.dtoRequest.ResetPasswordRequest;
-import com.adoustar.documentmanagement.domain.dtoRequest.UserRequest;
+import com.adoustar.documentmanagement.domain.dtoRequest.*;
 import com.adoustar.documentmanagement.enums.TokenType;
 import com.adoustar.documentmanagement.service.JwtService;
 import com.adoustar.documentmanagement.service.UserService;
@@ -36,6 +33,54 @@ public class UserController {
     public ResponseEntity<Response> addUser(@RequestBody @Valid UserRequest user, HttpServletRequest request) {
         userService.createUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword());
         return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Account created. Check  your email to enable your account", CREATED));
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<Response> profile(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
+        var user = userService.getUserByUserId(userPrincipal.getUserId());
+        return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "Profile retrieved", OK));
+    }
+
+    @PatchMapping("/update")
+    public ResponseEntity<Response> update(@AuthenticationPrincipal User userPrincipal, @RequestBody UserRequest userRequest, HttpServletRequest request) {
+        var user = userService.updateUser(userPrincipal.getUserId(), userRequest.getFirstName(), userRequest.getLastName(), userRequest.getEmail(), userRequest.getPhone(), userRequest.getBio());
+        return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User update successful", OK));
+    }
+
+    @PatchMapping("/changepassword")
+    public ResponseEntity<Response> changePassword(@AuthenticationPrincipal User userPrincipal, @RequestBody UpdatePasswordRequest passwordRequest, HttpServletRequest request) {
+        userService.changePassword(userPrincipal.getUserId(), passwordRequest.getPassword(), passwordRequest.getNewPassword(), passwordRequest.getConfirmNewPassword());
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Change password successful", OK));
+    }
+
+    @PatchMapping("/updaterole")
+    public ResponseEntity<Response> updateRole(@AuthenticationPrincipal User userPrincipal, @RequestBody RoleRequest roleRequest, HttpServletRequest request) {
+        userService.updateRole(userPrincipal.getUserId(), roleRequest.getRole());
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Role update successful", OK));
+    }
+
+    @PatchMapping("/toggleaccountexpired")
+    public ResponseEntity<Response> toggleAccountExpired(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
+        userService.toggleAccountExpired(userPrincipal.getUserId());
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account credentials updated successfully", OK));
+    }
+
+    @PatchMapping("/toggleaccountlocked")
+    public ResponseEntity<Response> toggleAccountLocked(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
+        userService.toggleAccountLocked(userPrincipal.getUserId());
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account credentials updated successfully", OK));
+    }
+
+    @PatchMapping("/toggleaccountenabled")
+    public ResponseEntity<Response> toggleAccountEnabled(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
+        userService.toggleAccountEnabled(userPrincipal.getUserId());
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account credentials updated successfully", OK));
+    }
+
+    @PatchMapping("/togglecredentialsexpired")
+    public ResponseEntity<Response> toggleCredentialsExpired(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
+        userService.toggleCredentialsExpired(userPrincipal.getUserId());
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account credentials updated successfully", OK));
     }
 
     @GetMapping("/verify/account")

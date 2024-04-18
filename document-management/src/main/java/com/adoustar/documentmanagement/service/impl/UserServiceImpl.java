@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import static com.adoustar.documentmanagement.constant.Constant.NINETY_DAYS;
 import static com.adoustar.documentmanagement.utils.UserUtil.*;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
@@ -177,11 +178,74 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updatePassword(String userId, String newPassword, String confirmNewPassword) {
-        if (confirmNewPassword.equals(newPassword)) { throw new ApiException("Passwords don't match. Please try again"); }
+        if (!confirmNewPassword.equals(newPassword)) { throw new ApiException("Passwords don't match. Please try again"); }
         var user = getUserByUserId(userId);
         var credentials = getUserCredentialById(user.getId());
         credentials.setPassword(encoder.encode(newPassword));
         credentialRepository.save(credentials);
+    }
+
+    @Override
+    public void changePassword(String userId, String password, String newPassword, String confirmNewPassword) {
+        if (!confirmNewPassword.equals(newPassword)) { throw new ApiException("Passwords don't match. Please try again"); }
+        var userEntity = getUserEntityByUserId(userId);
+        UserValidation.verifyAccountStatus(userEntity);
+        var credentials = getUserCredentialById(userEntity.getId());
+        if (!encoder.matches(password, credentials.getPassword())) { throw new ApiException("Existing password is incorrect. Please try again"); }
+        credentials.setPassword(encoder.encode(newPassword));
+        credentialRepository.save(credentials);
+    }
+
+    @Override
+    public User updateUser(String userId, String firstName, String lastName, String email, String phone, String bio) {
+        var userEntity = getUserEntityByUserId(userId);
+        userEntity.setFirstName(firstName);
+        userEntity.setLastName(lastName);
+        userEntity.setEmail(email);
+        userEntity.setPhone(phone);
+        userEntity.setBio(bio);
+        userRepository.save(userEntity);
+        return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
+    }
+
+    @Override
+    public void updateRole(String userId, String role) {
+        var userEntity = getUserEntityByUserId(userId);
+        userEntity.setRole(getRoleName(role));
+        userRepository.save(userEntity);
+    }
+
+    @Override
+    public void toggleAccountExpired(String userId) {
+        var userEntity = getUserEntityByUserId(userId);
+        userEntity.setAccountNonExpired(!userEntity.isAccountNonExpired());
+        userRepository.save(userEntity);
+    }
+
+    @Override
+    public void toggleAccountLocked(String userId) {
+        var userEntity = getUserEntityByUserId(userId);
+        userEntity.setAccountNonLocked(!userEntity.isAccountNonLocked());
+        userRepository.save(userEntity);
+    }
+
+    @Override
+    public void toggleAccountEnabled(String userId) {
+        var userEntity = getUserEntityByUserId(userId);
+        userEntity.setEnabled(!userEntity.isEnabled());
+        userRepository.save(userEntity);
+    }
+
+    @Override
+    public void toggleCredentialsExpired(String userId) {
+        var userEntity = getUserEntityByUserId(userId);
+        var credentials = getUserCredentialById(userEntity.getId());
+        if (credentials.getUpdatedAt().plusDays(NINETY_DAYS).isAfter(LocalDateTime.now())) {
+            credentials.setUpdatedAt(LocalDateTime.now());
+        } else {
+            credentials.setUpdatedAt(LocalDateTime.of(1995, 9, 7, 12, 0));
+        }
+        userRepository.save(userEntity);
     }
 
     private boolean verifyCode(String qrCode, String qrCodeSecret) {
