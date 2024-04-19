@@ -4,6 +4,7 @@ import com.adoustar.documentmanagement.domain.dto.User;
 import com.adoustar.documentmanagement.entity.CredentialEntity;
 import com.adoustar.documentmanagement.entity.RoleEntity;
 import com.adoustar.documentmanagement.enums.LoginType;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
     void createUser(String firstname, String lastName, String email, String password);
@@ -45,4 +46,5 @@ public interface UserService {
     void toggleCredentialsExpired(String userId);
 
 
+    String uploadPhoto(String userId, MultipartFile file);
 }

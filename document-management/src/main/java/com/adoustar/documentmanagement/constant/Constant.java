@@ -26,4 +26,6 @@ public class Constant {
 
     public static final String NEW_USER_ACCOUNT_VERIFICATION = "New User Account Verification";
     public static final String PASSWORD_RESET_REQUEST = "Password Reset Request";
+
+    public static final String PHOTO_DIRECTORY = System.getProperty("user.home") + "/Downloads/uploads/";
 }

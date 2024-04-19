@@ -30,12 +30,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import static com.adoustar.documentmanagement.constant.Constant.NINETY_DAYS;
+import static com.adoustar.documentmanagement.constant.Constant.PHOTO_DIRECTORY;
 import static com.adoustar.documentmanagement.utils.UserUtil.*;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Service
@@ -247,6 +254,28 @@ public class UserServiceImpl implements UserService {
         }
         userRepository.save(userEntity);
     }
+
+    @Override
+    public String uploadPhoto(String userId, MultipartFile file) {
+        var user = getUserEntityByUserId(userId);
+        var photoUrl = photoFunction.apply(userId, file);
+        user.setImageUrl(photoUrl + "?timestamp=" + System.currentTimeMillis());
+        userRepository.save(user);
+        return photoUrl;
+    }
+
+    private final BiFunction<String, MultipartFile, String> photoFunction = (id, file) -> {
+        var filename = id + ".png";
+        try {
+            var fileStorageLocation = Paths.get(PHOTO_DIRECTORY).toAbsolutePath().normalize();
+            if (!Files.exists(fileStorageLocation)) { Files.createDirectories(fileStorageLocation); }
+            Files.copy(file.getInputStream(), fileStorageLocation.resolve(filename), REPLACE_EXISTING);
+
+            return ServletUriComponentsBuilder
+                    .fromCurrentContextPath()
+                    .path("/user/image/" + filename).toUriString();
+        } catch (Exception exception) { throw new ApiException("Unable to save image"); }
+    };
 
     private boolean verifyCode(String qrCode, String qrCodeSecret) {
         TimeProvider timeProvider = new SystemTimeProvider();
