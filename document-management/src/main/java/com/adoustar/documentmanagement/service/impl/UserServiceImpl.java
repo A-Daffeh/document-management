@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 import static com.adoustar.documentmanagement.constant.Constant.NINETY_DAYS;
-import static com.adoustar.documentmanagement.constant.Constant.PHOTO_DIRECTORY;
+import static com.adoustar.documentmanagement.constant.Constant.FILE_STORAGE;
 import static com.adoustar.documentmanagement.utils.UserUtil.*;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -264,10 +264,16 @@ public class UserServiceImpl implements UserService {
         return photoUrl;
     }
 
+    @Override
+    public User getUserById(Long id) {
+        var userEntity = userRepository.findById(id).orElseThrow(() -> new ApiException("User not found"));
+        return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
+    }
+
     private final BiFunction<String, MultipartFile, String> photoFunction = (id, file) -> {
         var filename = id + ".png";
         try {
-            var fileStorageLocation = Paths.get(PHOTO_DIRECTORY).toAbsolutePath().normalize();
+            var fileStorageLocation = Paths.get(FILE_STORAGE).toAbsolutePath().normalize();
             if (!Files.exists(fileStorageLocation)) { Files.createDirectories(fileStorageLocation); }
             Files.copy(file.getInputStream(), fileStorageLocation.resolve(filename), REPLACE_EXISTING);
 

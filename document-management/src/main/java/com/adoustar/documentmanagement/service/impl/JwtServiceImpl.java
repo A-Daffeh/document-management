@@ -64,13 +64,12 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
             Jwts.builder()
                     .header().add(Map.of(TYPE, JWT_TYPE))
                     .and()
-                    .audience().add("DOCUMENT_MANAGEMENT")
+                    .audience().add("docmanagement")
                     .and()
                     .id(UUID.randomUUID().toString())
                     .issuedAt(Date.from(Instant.now()))
                     .notBefore(new Date())
                     .signWith(key.get(), Jwts.SIG.HS512);
-
 
     private final BiFunction<User, TokenType, String> buildToken = (user, tokenType) ->
              Objects.equals(tokenType, TokenType.ACCESS) ? builder.get().subject(user.getUserId())

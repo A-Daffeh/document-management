@@ -23,7 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import static com.adoustar.documentmanagement.constant.Constant.PHOTO_DIRECTORY;
+import static com.adoustar.documentmanagement.constant.Constant.FILE_STORAGE;
 import static com.adoustar.documentmanagement.utils.RequestUtil.getResponse;
 import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -42,7 +42,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<Response> addUser(@RequestBody @Valid UserRequest user, HttpServletRequest request) {
         userService.createUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword());
-        return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Account created. Check  your email to enable your account", CREATED));
+        return ResponseEntity.created(URI.create("")).body(getResponse(request, emptyMap(), "Account created. Check  your email to enable your account", CREATED));
     }
     @GetMapping("/profile")
     public ResponseEntity<Response> profile(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
@@ -129,16 +129,12 @@ public class UserController {
 
     @GetMapping(value = "/image/{filename}", produces = { IMAGE_PNG_VALUE, IMAGE_JPEG_VALUE })
     public byte[] getPhoto(@PathVariable("filename") String filename) throws IOException {
-        return Files.readAllBytes(Paths.get(PHOTO_DIRECTORY + filename));
+        return Files.readAllBytes(Paths.get(FILE_STORAGE + filename));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Response> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         logoutHandler.logout(request, response, authentication);
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "You've logged out successfully", OK));
-    }
-
-    private URI getUri() {
-        return URI.create("");
     }
 }
