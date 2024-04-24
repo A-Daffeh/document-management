@@ -113,7 +113,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByUserId(String userId) {
-        UserEntity userEntity = userRepository.findUserEntityByUserId(userId).orElseThrow(() -> new ApiException("User not found"));
+        UserEntity userEntity = userRepository.findUserByUserId(userId).orElseThrow(() -> new ApiException("User not found"));
         return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
     }
 
@@ -295,7 +295,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserEntity getUserEntityByUserId(String userId) {
-        return userRepository.findUserEntityByUserId(userId).orElseThrow(() -> new ApiException("User not found"));
+        return userRepository.findUserByUserId(userId).orElseThrow(() -> new ApiException("User not found"));
     }
 
     private UserEntity getUserEntityById(Long userId) {

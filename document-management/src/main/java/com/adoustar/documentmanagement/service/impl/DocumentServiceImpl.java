@@ -29,6 +29,7 @@ import static com.adoustar.documentmanagement.utils.DocumentUtils.*;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 import static org.apache.commons.io.FilenameUtils.getExtension;
+import static org.springframework.data.domain.PageRequest.of;
 import static org.springframework.util.StringUtils.cleanPath;
 
 @Service
@@ -43,41 +44,40 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public Page<IDocument> getDocuments(int page, int size) {
-        return documentRepository.findDocuments(PageRequest.of(page, size, Sort.by("name")));
+        return documentRepository.findDocuments(of(page, size, Sort.by("name")));
     }
 
     @Override
     public Page<IDocument> getDocuments(int page, int size, String name) {
-        return documentRepository.findDocumentsByName(name, PageRequest.of(page, size, Sort.by("name")));
+        return documentRepository.findDocumentsByName(name, of(page, size, Sort.by("name")));
     }
 
     @Override
     public Collection<Document> saveDocuments(String userId, List<MultipartFile> documents) {
         List<Document> newDocuments = new ArrayList<>();
-        var userEntity = userRepository.findUserEntityByUserId(userId).get();
+        var userEntity = userRepository.findUserByUserId(userId).get();
         var storage = Paths.get(FILE_STORAGE).toAbsolutePath().normalize();
         try {
-            for (MultipartFile document: documents) {
+            for(MultipartFile document : documents) {
                 var filename = cleanPath(Objects.requireNonNull(document.getOriginalFilename()));
-                if ("..".contains(filename)) { throw new ApiException(String.format("Invalid file name: %s", filename)); }
-                var documentEntity = DocumentEntity.builder()
+                if("..".contains(filename)) { throw new ApiException(String.format("Invalid file name: %s", filename)); }
+                var documentEntity = DocumentEntity
+                        .builder()
                         .documentId(UUID.randomUUID().toString())
                         .name(filename)
                         .owner(userEntity)
                         .extension(getExtension(filename))
                         .uri(getDocumentUri(filename))
                         .formattedSize(byteCountToDisplaySize(document.getSize()))
-                        .icon(setIcon(getExtension(filename)))
+                        .icon(setIcon((getExtension(filename))))
                         .build();
-
                 var savedDocument = documentRepository.save(documentEntity);
-                // This is when I should call something like an s3 bucket to save the files
                 Files.copy(document.getInputStream(), storage.resolve(filename), REPLACE_EXISTING);
                 Document newDocument = fromDocumentEntity(savedDocument, userService.getUserById(savedDocument.getCreatedBy()), userService.getUserById(savedDocument.getUpdatedBy()));
                 newDocuments.add(newDocument);
             }
             return newDocuments;
-        } catch (Exception ex) {
+        } catch (Exception exception) {
             throw new ApiException("Unable to save documents");
         }
     }
@@ -86,13 +86,11 @@ public class DocumentServiceImpl implements DocumentService {
     public IDocument updateDocument(String documentId, String name, String description) {
         try {
             var documentEntity = getDocumentEntity(documentId);
-            // Get Document From the storage location
             var document = Paths.get(FILE_STORAGE).resolve(documentEntity.getName()).toAbsolutePath().normalize();
             Files.move(document, document.resolveSibling(name), REPLACE_EXISTING);
             documentEntity.setName(name);
             documentEntity.setDescription(description);
             documentRepository.save(documentEntity);
-
             return getDocumentByDocumentId(documentId);
         } catch (Exception exception) {
             throw new ApiException("Unable to update document");
@@ -116,14 +114,11 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public Resource getResource(String documentName) {
         try {
-            // This should give location (pointer) to the file
             var filePath = Paths.get(FILE_STORAGE).toAbsolutePath().normalize().resolve(documentName);
-            if (!Files.exists(filePath)) {
-                throw new ApiException("Document not found");
-            }
+            if(!Files.exists(filePath)) { throw new ApiException("Document not found"); }
             return new UrlResource(filePath.toUri());
         } catch (Exception exception) {
-            throw new ApiException("Unable download document");
+            throw new ApiException("Unable to download document");
         }
     }
 }
