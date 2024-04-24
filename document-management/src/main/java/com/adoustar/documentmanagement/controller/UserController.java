@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -45,41 +46,49 @@ public class UserController {
         return ResponseEntity.created(URI.create("")).body(getResponse(request, emptyMap(), "Account created. Check  your email to enable your account", CREATED));
     }
     @GetMapping("/profile")
+    @PreAuthorize("hasAuthority('user:read') or hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> profile(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
         var user = userService.getUserByUserId(userPrincipal.getUserId());
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "Profile retrieved", OK));
     }
     @PatchMapping("/update")
+    @PreAuthorize("hasAuthority('user:update') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> update(@AuthenticationPrincipal User userPrincipal, @RequestBody UserRequest userRequest, HttpServletRequest request) {
         var user = userService.updateUser(userPrincipal.getUserId(), userRequest.getFirstName(), userRequest.getLastName(), userRequest.getEmail(), userRequest.getPhone(), userRequest.getBio());
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User update successful", OK));
     }
     @PatchMapping("/changepassword")
+    @PreAuthorize("hasAuthority('user:update') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> changePassword(@AuthenticationPrincipal User userPrincipal, @RequestBody UpdatePasswordRequest passwordRequest, HttpServletRequest request) {
         userService.changePassword(userPrincipal.getUserId(), passwordRequest.getPassword(), passwordRequest.getNewPassword(), passwordRequest.getConfirmNewPassword());
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Change password successful", OK));
     }
     @PatchMapping("/updaterole")
+    @PreAuthorize("hasAuthority('user:update') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> updateRole(@AuthenticationPrincipal User userPrincipal, @RequestBody RoleRequest roleRequest, HttpServletRequest request) {
         userService.updateRole(userPrincipal.getUserId(), roleRequest.getRole());
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Role update successful", OK));
     }
     @PatchMapping("/toggleaccountexpired")
+    @PreAuthorize("hasAuthority('user:update') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> toggleAccountExpired(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
         userService.toggleAccountExpired(userPrincipal.getUserId());
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account credentials updated successfully", OK));
     }
     @PatchMapping("/toggleaccountlocked")
+    @PreAuthorize("hasAuthority('user:update') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> toggleAccountLocked(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
         userService.toggleAccountLocked(userPrincipal.getUserId());
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account credentials updated successfully", OK));
     }
     @PatchMapping("/toggleaccountenabled")
+    @PreAuthorize("hasAuthority('user:update') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> toggleAccountEnabled(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
         userService.toggleAccountEnabled(userPrincipal.getUserId());
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account credentials updated successfully", OK));
     }
     @PatchMapping("/togglecredentialsexpired")
+    @PreAuthorize("hasAuthority('user:update') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> toggleCredentialsExpired(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
         userService.toggleCredentialsExpired(userPrincipal.getUserId());
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account credentials updated successfully", OK));
@@ -90,11 +99,13 @@ public class UserController {
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account verified", OK));
     }
     @PatchMapping("/mfa/setup")
+    @PreAuthorize("hasAuthority('user:update') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> setUpMfa(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
         var user = userService.setUpMfa(userPrincipal.getId());
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "MFA setup successfully", OK));
     }
     @PatchMapping("/mfa/cancel")
+    @PreAuthorize("hasAuthority('user:update') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> cancelMfa(@AuthenticationPrincipal User userPrincipal, HttpServletRequest request) {
         var user = userService.cancelMfa(userPrincipal.getId());
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "MFA canceled successfully", OK));
@@ -122,6 +133,7 @@ public class UserController {
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Password reset successfully", OK));
     }
     @PatchMapping("/photo")
+    @PreAuthorize("hasAuthority('user:update') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Response> uploadPhoto(@AuthenticationPrincipal User userPrincipal, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
         var imageUrl = userService.uploadPhoto(userPrincipal.getUserId(), file);
         return ResponseEntity.ok().body(getResponse(request, Map.of("imageUrl", imageUrl), "Photo update successful", OK));
