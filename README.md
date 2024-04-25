@@ -197,6 +197,109 @@ classDiagram
     UserRole --|> User : user_id
     UserRole --|> Role : role_id
 ```
+
+## Database Design ER-Diagram
+```mermaid
+erDiagram
+    %% Table Definitions
+    USERS {
+        int id "Primary Key"
+        varchar user_id "Unique"
+        varchar first_name
+        varchar last_name
+        varchar email "Unique"
+        varchar phone
+        varchar bio
+        varchar reference_id
+        varchar qr_code_secret
+        text qr_code_image_uri
+        varchar image_url
+        timestamp last_login
+        int login_attempts
+        bool mfa
+        bool enabled
+        bool account_non_expired
+        bool account_non_locked
+        bigint created_by "Foreign Key"
+        bigint updated_by "Foreign Key"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    CONFIRMATIONS {
+        int id "Primary Key"
+        varchar key "Unique"
+        bigint user_id "Foreign Key"
+        varchar reference_id
+        bigint created_by "Foreign Key"
+        bigint updated_by "Foreign Key"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    CREDENTIALS {
+        int id "Primary Key"
+        varchar password
+        varchar reference_id
+        bigint user_id "Foreign Key"
+        bigint created_by "Foreign Key"
+        bigint updated_by "Foreign Key"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    DOCUMENTS {
+        int id "Primary Key"
+        varchar document_id "Unique"
+        varchar reference_id
+        varchar extension
+        varchar formatted_size
+        varchar icon
+        varchar name
+        bigint size
+        varchar uri
+        varchar description
+        bigint created_by "Foreign Key"
+        bigint updated_by "Foreign Key"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ROLES {
+        int id "Primary Key"
+        varchar authorities
+        varchar name
+        varchar reference_id
+        bigint created_by "Foreign Key"
+        bigint updated_by "Foreign Key"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    USER_ROLES {
+        int id "Primary Key"
+        bigint user_id "Foreign Key"
+        bigint role_id "Foreign Key"
+    }
+
+    %% Relationships
+    USERS ||--|{ USER_ROLES : "Has many user roles"
+    USER_ROLES ||--|| USERS : "Belongs to a user"
+    USER_ROLES ||--|| ROLES : "Belongs to a role"
+    
+    USERS ||--|{ CONFIRMATIONS : "Has many confirmations"
+    CONFIRMATIONS ||--|| USERS : "Belongs to a user"
+
+    USERS ||--|{ CREDENTIALS : "Has many credentials"
+    CREDENTIALS ||--|| USERS : "Belongs to a user"
+    
+    USERS ||--|{ DOCUMENTS : "Has many documents"
+    DOCUMENTS ||--|| USERS : "Created by a user"
+
+    USERS ||--|{ ROLES : "Created by or updated by a user"
+    ROLES ||--|| USERS : "Created by or updated by a user"
+```
+
 ## High Level Architecture Diagram
 ```mermaid
 flowchart TD
