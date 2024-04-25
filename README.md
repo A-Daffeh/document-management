@@ -197,3 +197,137 @@ classDiagram
     UserRole --|> User : user_id
     UserRole --|> Role : role_id
 ```
+## High Level Architecture Diagram
+```mermaid
+flowchart TD
+    %% Frontend
+    subgraph "Frontend (React)"
+        subgraph "UI Components"
+            RC[React Components]
+        end
+        
+        subgraph "State Management"
+            RX[Redux Store]
+            RAC[Redux Actions]
+            RRD[Redux Reducers]
+        end
+        
+        subgraph "API Communication"
+            RG[Axios Requests]
+        end
+        
+        subgraph "Routing"
+            RR[React Router]
+        end
+        
+        subgraph "Styling"
+            RBS[React Bootstrap]
+        end
+    end
+    
+    %% Connections in Frontend
+    RC --> RX
+    RC --> RG
+    RC --> RR
+    RC --> RBS
+    
+    RX --> RAC
+    RX --> RRD
+    
+    RAC --> RG
+    
+    %% Backend
+    subgraph "Backend (Spring Boot)"
+        subgraph "Web Layer"
+            BC[Controllers]
+            BSEC[Security Configuration]
+        end
+        
+        subgraph "Service Layer"
+            BS[Services]
+            BDM[Document Management Service]
+        end
+        
+        subgraph "Data Access Layer"
+            BDR[Repositories]
+            BDMR[Document Management Repositories]
+        end
+    end
+    
+    %% Connections in Backend
+    BC --> BS
+    BC --> BSEC
+    
+    BS --> BDR
+    BS --> BDM
+    
+    BDR --> DB[PostgreSQL]
+    BDM --> BDMR
+    
+    %% Database
+    subgraph "Database"
+        DB[PostgreSQL]
+    end
+    
+    %% UserController
+    subgraph "UserController"
+        RPOST[POST /user/register]
+        GGET[GET /user/verify/account]
+        PGET[GET /user/profile]
+        PUPATCH[PATCH /user/update]
+        PUROLEPATCH[PATCH /user/updaterole]
+        PTAEPATCH[PATCH /user/toggleaccountexpired]
+        PTALPATCH[PATCH /user/toggleaccountlocked]
+        PTAEPATCH2[PATCH /user/toggleaccountenabled]
+        PTCRPATCH[PATCH /user/togglecredentialsexpired]
+        PSUMFAPATCH[PATCH /user/mfa/setup]
+        PCMFPATCH[PATCH /user/mfa/cancel]
+        VERIFYPWGET[GET /user/verify/password]
+        UPWDPATCH[PATCH /user/updatepassword]
+        RESETPOST[POST /user/resetpassword]
+        DORESETPWPOST[POST /user/resetpassword/reset]
+        LGET[GET /user/list]
+        UPPATCH[PATCH /user/photo]
+        LOUTPOST[POST /user/logout]
+
+        RPOST --> GGET
+        GGET --> PGET
+        PGET --> PUPATCH
+        PUPATCH --> PUROLEPATCH
+        PUROLEPATCH --> PTAEPATCH
+        PTAEPATCH --> PTALPATCH
+        PTALPATCH --> PTAEPATCH2
+        PTAEPATCH2 --> PTCRPATCH
+        PTCRPATCH --> PSUMFAPATCH
+        PSUMFAPATCH --> PCMFPATCH
+        PCMFPATCH --> VERIFYPWGET
+        VERIFYPWGET --> UPWDPATCH
+        UPWDPATCH --> RESETPOST
+        RESETPOST --> DORESETPWPOST
+        DORESETPWPOST --> LGET
+        LGET --> UPPATCH
+        UPPATCH --> LOUTPOST
+    end
+    
+    %% DocumentController
+    subgraph "DocumentController"
+        UPOST[POST /documents/upload]
+        GGET[GET /documents]
+        SGET[GET /documents/search]
+        GIDGET[GET /documents/documentId]
+        UPATCH[PATCH /documents/documentId]
+        DGET[GET /documents/download/documentName]
+
+        UPOST --> GGET
+        GGET --> SGET
+        SGET --> GIDGET
+        GIDGET --> UPATCH
+        UPATCH --> DGET
+    end
+    
+    %% JWT Authentication
+    subgraph "JWT Authentication"
+        BC -->|JWT Tokens| BSEC
+        RG -->|JWT Tokens| BC
+    end
+```
