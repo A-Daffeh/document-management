@@ -100,7 +100,7 @@ Audit logs help administrators monitor and review user actions for security and 
 4. The application should keep track of when an entity (user, document, etc) was updated.
 
 ## Domain Model Class Diagram
-
+```mermaid
 classDiagram
     class User {
         +id: SERIAL
@@ -196,4 +196,4 @@ classDiagram
     Role --|> User : updated_by
     UserRole --|> User : user_id
     UserRole --|> Role : role_id
-
+```
