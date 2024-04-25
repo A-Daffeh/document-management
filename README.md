@@ -99,3 +99,101 @@ Audit logs help administrators monitor and review user actions for security and 
 3. The application should keep track of who updated an entity (user, document, etc). 
 4. The application should keep track of when an entity (user, document, etc) was updated.
 
+## Domain Model Class Diagram
+
+classDiagram
+    class User {
+        +id: SERIAL
+        +user_id: VARCHAR(255)
+        +first_name: VARCHAR(50)
+        +last_name: VARCHAR(50)
+        +email: VARCHAR(100)
+        +phone: VARCHAR(30)
+        +bio: VARCHAR(255)
+        +reference_id: VARCHAR(255)
+        +qr_code_secret: VARCHAR(255)
+        +qr_code_image_uri: TEXT
+        +image_url: VARCHAR(255) = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+        +last_login: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+        +login_attempts: INTEGER = 0
+        +mfa: BOOLEAN = FALSE
+        +enabled: BOOLEAN = FALSE
+        +account_non_expired: BOOLEAN = FALSE
+        +account_non_locked: BOOLEAN = FALSE
+        +created_by: BIGINT
+        +updated_by: BIGINT
+        +created_at: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+        +updated_at: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+    }
+
+    class Confirmation {
+        +id: SERIAL
+        +key: VARCHAR(255)
+        +user_id: BIGINT
+        +reference_id: VARCHAR(255)
+        +created_by: BIGINT
+        +updated_by: BIGINT
+        +created_at: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+        +updated_at: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+    }
+
+    class Credential {
+        +id: SERIAL
+        +password: VARCHAR(255)
+        +reference_id: VARCHAR(255)
+        +user_id: BIGINT
+        +created_by: BIGINT
+        +updated_by: BIGINT
+        +created_at: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+        +updated_at: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+    }
+
+    class Document {
+        +id: SERIAL
+        +document_id: VARCHAR(255)
+        +reference_id: VARCHAR(255)
+        +extension: VARCHAR(10)
+        +formatted_size: VARCHAR(20)
+        +icon: VARCHAR(255)
+        +name: VARCHAR(50)
+        +size: BIGINT
+        +uri: VARCHAR(255)
+        +description: VARCHAR(255)
+        +created_by: BIGINT
+        +updated_by: BIGINT
+        +created_at: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+        +updated_at: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+    }
+
+    class Role {
+        +id: SERIAL
+        +authorities: VARCHAR(255)
+        +name: VARCHAR(255)
+        +reference_id: VARCHAR(255)
+        +created_by: BIGINT
+        +updated_by: BIGINT
+        +created_at: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+        +updated_at: TIMESTAMP(6) WITH TIME ZONE = CURRENT_TIMESTAMP
+    }
+
+    class UserRole {
+        +id: SERIAL
+        +user_id: BIGINT
+        +role_id: BIGINT
+    }
+
+    User --|> User : created_by
+    User --|> User : updated_by
+    Confirmation --|> User : user_id
+    Confirmation --|> User : created_by
+    Confirmation --|> User : updated_by
+    Credential --|> User : user_id
+    Credential --|> User : created_by
+    Credential --|> User : updated_by
+    Document --|> User : created_by
+    Document --|> User : updated_by
+    Role --|> User : created_by
+    Role --|> User : updated_by
+    UserRole --|> User : user_id
+    UserRole --|> Role : role_id
+
