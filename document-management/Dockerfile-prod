@@ -1,6 +1,6 @@
 FROM maven:3.9 AS build
 WORKDIR /app
-COPY document-managmenet/pom.xml .
+COPY document-management/pom.xml .
 RUN mvn dependency:go-offline -B
 COPY document-management/src ./src
 RUN mvn package -DskipTests
