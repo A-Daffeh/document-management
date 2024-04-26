@@ -32,7 +32,7 @@ public class UserUtil {
                 .accountNonExpired(true)
                 .accountNonLocked(true)
                 .enabled(false)
-                .isMfa(false)
+                .mfa(false)
                 .loginAttempts(0)
                 .qrCodeSecret(EMPTY)
                 .phone(EMPTY)

@@ -27,7 +27,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
-@RequestMapping("/documents")
+@RequestMapping(path = { "/documents" })
 @RequiredArgsConstructor
 public class DocumentController {
 

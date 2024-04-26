@@ -36,13 +36,18 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.List;
 import java.util.function.BiFunction;
 
-import static com.adoustar.documentmanagement.constant.Constant.NINETY_DAYS;
 import static com.adoustar.documentmanagement.constant.Constant.FILE_STORAGE;
+import static com.adoustar.documentmanagement.enums.EventType.REGISTRATION;
+import static com.adoustar.documentmanagement.enums.EventType.RESET_PASSWORD;
 import static com.adoustar.documentmanagement.utils.UserUtil.*;
+import static com.adoustar.documentmanagement.validation.UserValidation.verifyAccountStatus;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.time.LocalDateTime.now;
+import static java.util.Map.of;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Service
@@ -55,19 +60,18 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final CredentialRepository credentialRepository;
     private final ConfirmationRepository confirmationRepository;
-    private final ApplicationEventPublisher publisher;
-    private final CacheStore<String, Integer> userCache;
-
     private final BCryptPasswordEncoder encoder;
+    private final CacheStore<String, Integer> userCache;
+    private final ApplicationEventPublisher publisher;
 
     @Override
     public void createUser(String firstName, String lastName, String email, String password) {
         var userEntity = userRepository.save(createNewUser(firstName, lastName, email));
-        var credentialEntity  = new CredentialEntity(encoder.encode(password), userEntity);
+        var credentialEntity = new CredentialEntity(userEntity, encoder.encode(password));
         credentialRepository.save(credentialEntity);
         var confirmationEntity = new ConfirmationEntity(userEntity);
         confirmationRepository.save(confirmationEntity);
-        publisher.publishEvent(new UserEvent(userEntity, EventType.REGISTRATION, Map.of("key", confirmationEntity.getKey())));
+        publisher.publishEvent(new UserEvent(userEntity, REGISTRATION, of("key", confirmationEntity.getKey())));
     }
 
     @Override
@@ -104,7 +108,7 @@ public class UserServiceImpl implements UserService {
             case LOGIN_SUCCESS -> {
                 userEntity.setAccountNonLocked(true);
                 userEntity.setLoginAttempts(0);
-                userEntity.setLastLogin(LocalDateTime.now());
+                userEntity.setLastLogin(now());
                 userCache.evict(userEntity.getEmail());
             }
         }
@@ -113,7 +117,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByUserId(String userId) {
-        UserEntity userEntity = userRepository.findUserByUserId(userId).orElseThrow(() -> new ApiException("User not found"));
+        var userEntity = userRepository.findUserByUserId(userId).orElseThrow(() -> new ApiException("User not found"));
         return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
     }
 
@@ -123,16 +127,15 @@ public class UserServiceImpl implements UserService {
         return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
     }
 
-
     @Override
     public CredentialEntity getUserCredentialById(Long userId) {
-        var credentialById = credentialRepository.getCredentialsByUserEntityId(userId);
-        return credentialById.orElseThrow(() -> new ApiException("Unable to find user credential."));
+        var credentialById = credentialRepository.getCredentialByUserEntityId(userId);
+        return credentialById.orElseThrow(() -> new ApiException("Unable to find user credential"));
     }
 
     @Override
-    public User setUpMfa(Long userId) {
-        var userEntity = getUserEntityById(userId);
+    public User setUpMfa(Long id) {
+        var userEntity = getUserEntityById(id);
         var codeSecret = qrCodeSecret.get();
         userEntity.setQrCodeImageUri(qrCodeImageUri.apply(userEntity.getEmail(), codeSecret));
         userEntity.setQrCodeSecret(codeSecret);
@@ -142,11 +145,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User cancelMfa(Long userId) {
-        var userEntity = getUserEntityById(userId);
-        userEntity.setQrCodeImageUri(EMPTY);
-        userEntity.setQrCodeSecret(EMPTY);
+    public User cancelMfa(Long id) {
+        var userEntity = getUserEntityById(id);
         userEntity.setMfa(false);
+        userEntity.setQrCodeSecret(EMPTY);
+        userEntity.setQrCodeImageUri(EMPTY);
         userRepository.save(userEntity);
         return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
     }
@@ -162,30 +165,30 @@ public class UserServiceImpl implements UserService {
     public void resetPassword(String email) {
         var user = getUserEntityByEmail(email);
         var confirmation = getUserConfirmation(user);
-
         if (confirmation != null) {
-            publisher.publishEvent(new UserEvent(user, EventType.RESET_PASSWORD, Map.of("key", confirmation.getKey())));
+            publisher.publishEvent(new UserEvent(user, RESET_PASSWORD, of("key", confirmation.getKey())));
         } else {
             var confirmationEntity = new ConfirmationEntity(user);
             confirmationRepository.save(confirmationEntity);
-            publisher.publishEvent(new UserEvent(user, EventType.RESET_PASSWORD, Map.of("key", confirmationEntity.getKey())));
+            publisher.publishEvent(new UserEvent(user, RESET_PASSWORD, of("key", confirmationEntity.getKey())));
         }
+
     }
 
     @Override
-    public User verifyPasswordKey(String token) {
-        var confirmationEntity = getUserConfirmation(token);
+    public User verifyPasswordKey(String key) {
+        var confirmationEntity = getUserConfirmation(key);
         if (confirmationEntity == null) { throw new ApiException("Unable to find token"); }
         var userEntity = getUserEntityByEmail(confirmationEntity.getUserEntity().getEmail());
         if (userEntity == null) { throw new ApiException("Incorrect token"); }
-        UserValidation.verifyAccountStatus(userEntity);
+        verifyAccountStatus(userEntity);
         confirmationRepository.delete(confirmationEntity);
         return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
     }
 
     @Override
     public void updatePassword(String userId, String newPassword, String confirmNewPassword) {
-        if (!confirmNewPassword.equals(newPassword)) { throw new ApiException("Passwords don't match. Please try again"); }
+        if(!confirmNewPassword.equals(newPassword)) { throw new ApiException("Passwords don't match. Please try again."); }
         var user = getUserByUserId(userId);
         var credentials = getUserCredentialById(user.getId());
         credentials.setPassword(encoder.encode(newPassword));
@@ -193,12 +196,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(String userId, String password, String newPassword, String confirmNewPassword) {
-        if (!confirmNewPassword.equals(newPassword)) { throw new ApiException("Passwords don't match. Please try again"); }
-        var userEntity = getUserEntityByUserId(userId);
-        UserValidation.verifyAccountStatus(userEntity);
-        var credentials = getUserCredentialById(userEntity.getId());
-        if (!encoder.matches(password, credentials.getPassword())) { throw new ApiException("Existing password is incorrect. Please try again"); }
+    public void updatePassword(String userId, String currentPassword, String newPassword, String confirmNewPassword) {
+        if(!confirmNewPassword.equals(newPassword)) { throw new ApiException("Passwords don't match. Please try again."); }
+        var user = getUserEntityByUserId(userId);
+        verifyAccountStatus(user);
+        var credentials = getUserCredentialById(user.getId());
+        if(!encoder.matches(currentPassword, credentials.getPassword())) { throw new ApiException("Existing passwords is incorrect. Please try again."); }
         credentials.setPassword(encoder.encode(newPassword));
         credentialRepository.save(credentials);
     }
@@ -220,6 +223,7 @@ public class UserServiceImpl implements UserService {
         var userEntity = getUserEntityByUserId(userId);
         userEntity.setRole(getRoleName(role));
         userRepository.save(userEntity);
+
     }
 
     @Override
@@ -234,6 +238,7 @@ public class UserServiceImpl implements UserService {
         var userEntity = getUserEntityByUserId(userId);
         userEntity.setAccountNonLocked(!userEntity.isAccountNonLocked());
         userRepository.save(userEntity);
+
     }
 
     @Override
@@ -241,18 +246,24 @@ public class UserServiceImpl implements UserService {
         var userEntity = getUserEntityByUserId(userId);
         userEntity.setEnabled(!userEntity.isEnabled());
         userRepository.save(userEntity);
+
     }
 
     @Override
     public void toggleCredentialsExpired(String userId) {
         var userEntity = getUserEntityByUserId(userId);
         var credentials = getUserCredentialById(userEntity.getId());
-        if (credentials.getUpdatedAt().plusDays(NINETY_DAYS).isAfter(LocalDateTime.now())) {
-            credentials.setUpdatedAt(LocalDateTime.now());
-        } else {
-            credentials.setUpdatedAt(LocalDateTime.of(1995, 9, 7, 12, 0));
-        }
-        userRepository.save(userEntity);
+        credentials.setUpdatedAt(LocalDateTime.of(1995, 7, 12, 11, 11));
+        credentialRepository.save(credentials);
+    }
+
+    @Override
+    public List<User> getUsers() {
+        return userRepository.findAll()
+                .stream()
+                .filter(userEntity -> !"system@gmail.com".equalsIgnoreCase(userEntity.getEmail()))
+                .map(userEntity -> fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId())))
+                .collect(toList());
     }
 
     @Override
@@ -274,32 +285,35 @@ public class UserServiceImpl implements UserService {
         var filename = id + ".png";
         try {
             var fileStorageLocation = Paths.get(FILE_STORAGE).toAbsolutePath().normalize();
-            if (!Files.exists(fileStorageLocation)) { Files.createDirectories(fileStorageLocation); }
+            if(!Files.exists(fileStorageLocation)) { Files.createDirectories(fileStorageLocation); }
             Files.copy(file.getInputStream(), fileStorageLocation.resolve(filename), REPLACE_EXISTING);
-
             return ServletUriComponentsBuilder
                     .fromCurrentContextPath()
                     .path("/user/image/" + filename).toUriString();
-        } catch (Exception exception) { throw new ApiException("Unable to save image"); }
+        } catch (Exception exception) {
+            throw new ApiException("unable to save image");
+        }
     };
 
     private boolean verifyCode(String qrCode, String qrCodeSecret) {
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         CodeVerifier codeVerifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
-        if (codeVerifier.isValidCode(qrCodeSecret, qrCode)) {
+        if(codeVerifier.isValidCode(qrCodeSecret, qrCode)) {
             return true;
         } else {
-            throw new ApiException("Invalid QR Code. Please try again.");
+            throw new ApiException("Invalid QR code. Please try again.");
         }
     }
 
     private UserEntity getUserEntityByUserId(String userId) {
-        return userRepository.findUserByUserId(userId).orElseThrow(() -> new ApiException("User not found"));
+        var userByUserId = userRepository.findUserByUserId(userId);
+        return userByUserId.orElseThrow(() -> new ApiException("User not found"));
     }
 
-    private UserEntity getUserEntityById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new ApiException("User not found"));
+    private UserEntity getUserEntityById(Long id) {
+        var userById = userRepository.findById(id);
+        return userById.orElseThrow(() -> new ApiException("User not found"));
     }
 
     private UserEntity getUserEntityByEmail(String email) {
@@ -312,7 +326,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private ConfirmationEntity getUserConfirmation(UserEntity user) {
-        return confirmationRepository.findByUserEntity(user).orElseThrow(null);
+        return confirmationRepository.findByUserEntity(user).orElse(null);
     }
 
     private UserEntity createNewUser(String firstName, String lastName, String email) {

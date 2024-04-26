@@ -33,6 +33,16 @@ public class Application {
 //			adminRole.setName(Authority.ADMIN.name());
 //			adminRole.setAuthorities(Authority.ADMIN);
 //			roleRepository.save(adminRole);
+//
+//			var superAdminRole = new RoleEntity();
+//			superAdminRole.setName(Authority.SUPER_ADMIN.name());
+//			superAdminRole.setAuthorities(Authority.SUPER_ADMIN);
+//			roleRepository.save(superAdminRole);
+//
+//			var managerRole = new RoleEntity();
+//			managerRole.setName(Authority.MANAGER.name());
+//			managerRole.setAuthorities(Authority.MANAGER);
+//			roleRepository.save(managerRole);
 //			RequestContext.start();
 		};
 	}

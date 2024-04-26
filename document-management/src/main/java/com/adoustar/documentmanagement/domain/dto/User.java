@@ -30,5 +30,5 @@ public class User {
     private boolean accountNonLocked;
     private boolean credentialsNonExpired;
     private boolean enabled;
-    private boolean isMfa;
+    private boolean mfa;
 }

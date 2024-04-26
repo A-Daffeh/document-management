@@ -1,7 +1,6 @@
 package com.adoustar.documentmanagement.service.impl;
 
 import com.adoustar.documentmanagement.domain.dto.Document;
-import com.adoustar.documentmanagement.domain.dto.User;
 import com.adoustar.documentmanagement.domain.dto.api.IDocument;
 import com.adoustar.documentmanagement.entity.DocumentEntity;
 import com.adoustar.documentmanagement.exception.ApiException;
@@ -15,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
