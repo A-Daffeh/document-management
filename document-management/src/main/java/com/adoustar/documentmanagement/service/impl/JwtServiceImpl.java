@@ -90,7 +90,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                 var accessToken = createToken(user, Token::getAccess);
                 var cookie = new Cookie(tokenType.getValue(), accessToken);
                 cookie.setHttpOnly(true);
-//                cookie.setSecure(true);
+                cookie.setSecure(true);
                 cookie.setMaxAge(2 * 60);
                 cookie.setPath("/");
                 cookie.setAttribute("SameSite", NONE.name());
@@ -100,7 +100,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                 var refreshToken = createToken(user, Token::getRefreshToken);
                 var cookie = new Cookie(tokenType.getValue(), refreshToken);
                 cookie.setHttpOnly(true);
-//                cookie.setSecure(true);
+                cookie.setSecure(true);
                 cookie.setMaxAge(2 * 60 * 60);
                 cookie.setPath("/");
                 cookie.setAttribute("SameSite", NONE.name());

@@ -22,9 +22,12 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import static com.adoustar.documentmanagement.constant.Constant.PUBLIC_ROUTES;
+import static com.adoustar.documentmanagement.domain.UserAuthentication.authenticated;
 import static com.adoustar.documentmanagement.enums.TokenType.ACCESS;
 import static com.adoustar.documentmanagement.enums.TokenType.REFRESH;
 import static com.adoustar.documentmanagement.utils.RequestUtil.handleErrorResponse;
+import static java.util.Arrays.asList;
+import static org.springframework.http.HttpMethod.OPTIONS;
 
 @Component
 @RequiredArgsConstructor
@@ -61,17 +64,13 @@ public class AuthorizationFilter extends OncePerRequestFilter {
 
     @Override
     public boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        var shouldNotFilter = request.getMethod().equalsIgnoreCase(HttpMethod.OPTIONS.name()) ||
-                Arrays.asList(PUBLIC_ROUTES).contains(request.getRequestURI());
-        if (shouldNotFilter) {
-            RequestContext.setUserId(0L);
-        }
+        var shouldNotFilter = request.getMethod().equalsIgnoreCase(OPTIONS.name()) || asList(PUBLIC_ROUTES).contains(request.getRequestURI());
+        if(shouldNotFilter) { RequestContext.setUserId(0L); }
         return shouldNotFilter;
     }
 
     private Authentication getAuthentication(String token, HttpServletRequest request) {
-        var authentication = UserAuthentication.authenticated(jwtService.getTokenData(token, TokenData::getUser),
-                jwtService.getTokenData(token, TokenData::getAuthorities));
+        var authentication = authenticated(jwtService.getTokenData(token, TokenData::getUser), jwtService.getTokenData(token, TokenData::getAuthorities));
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         return authentication;
     }

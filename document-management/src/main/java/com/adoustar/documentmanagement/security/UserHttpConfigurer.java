@@ -27,7 +27,6 @@ public class UserHttpConfigurer extends AbstractHttpConfigurer<UserHttpConfigure
     @Override
     public void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class);
-        http.addFilterAfter(new AuthenticationFilter(authenticationConfiguration.getAuthenticationManager(), userService, jwtService),
-                UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(new AuthenticationFilter(authenticationConfiguration.getAuthenticationManager(), userService, jwtService), UsernamePasswordAuthenticationFilter.class);
     }
 }
